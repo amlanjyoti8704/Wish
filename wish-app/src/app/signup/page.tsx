@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../../../lib/supabaseClient";
 
 export default function SignupPage() {
   const [name, setName] = useState("");
@@ -12,16 +13,38 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-const handleSubmit = (e:any) => {
+useEffect(() => {
+  const checkUser = async () => {
+    const { data } = await supabase.auth.getSession();
+
+    if (data.session) {
+      window.location.href = "/profiles";
+    }
+  };
+
+  checkUser();
+}, []);
+
+const handleSubmit = async (e:any) => {
   e.preventDefault();
 
   if (password !== retypePassword) return;
 
   setIsLoading(true);
 
-  setTimeout(() => {
-    window.location.href = "/profiles";
-  }, 800);
+  const {data, error}=await supabase.auth.signUp({
+    email,
+    password,
+  })
+
+  if(error) {
+    alert(error.message);
+    setIsLoading(false);
+    return;
+  }
+
+  console.log("USER: ", data);
+  window.location.href = "/profiles";
 };
 
   return (
@@ -75,10 +98,22 @@ const handleSubmit = (e:any) => {
 
               {/* Social */}
               <div className="flex flex-col sm:flex-row w-[50vw] md:w-[40vw] xl:w-[30vw] gap-3">
-                <div className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
+                <div 
+                  onClick={async()=>{
+                    await supabase.auth.signInWithOAuth({
+                      provider: 'google',
+                    })
+                  }}
+                  className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
                   Google
                 </div>
-                <div className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
+                <div 
+                  onClick={async()=>{
+                    await supabase.auth.signInWithOAuth({
+                      provider: 'github',
+                    })
+                  }}
+                  className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
                   Github
                 </div>
               </div>

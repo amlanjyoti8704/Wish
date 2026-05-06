@@ -3,11 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../lib/supabaseClient";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const router = useRouter(); 
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) console.log(error);
+    router.push("/login"); 
+  };  
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -76,11 +86,19 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
 
             {/* Profile */}
-            <Link href="/profiles" className="group">
+            <div className="relative group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-800 flex items-center justify-center font-bold text-sm transition-all duration-300 group-hover:ring-2 group-hover:ring-red-500/50 group-hover:scale-110">
                 A
               </div>
-            </Link>
+              <ul className="absolute right-0 top-full mt-2 w-40 py-2 bg-zinc-900 border border-white/10 rounded-lg shadow-xl opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
+                <li className="py-1 px-2 text-center">
+                  <Link href="/profiles" className="text-sm font-medium text-white/70 hover:text-white transition">Manage Profiles</Link>  
+                </li>
+                <li className="py-1 px-2 text-center">
+                    <button className="text-sm font-medium text-white/70 hover:text-white transition" onClick={() => handleLogout()}>Logout</button>
+                </li>
+              </ul>
+            </div>
 
             {/* Mobile Menu Button */}
             <button

@@ -3,20 +3,44 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "../../../lib/supabaseClient";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [focused, setFocused] = useState(null);
+  // const [focused, setFocused] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const router=useRouter();
 
-  const handleSubmit = (e:any) => {
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+
+      if (data.session) {
+        router.push("/profiles");
+      }
+    };
+
+    checkUser();
+  }, []);
+
+  const handleSubmit = async(e:any) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
-      window.location.href = "/profiles";
-    }, 800);
+    const {data,error}=await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+    if(error){
+      alert(error.message);
+      setIsLoading(false);
+      return;
+    }
+
+    router.push("/profiles")
   };
 
   return (
@@ -73,10 +97,22 @@ export default function LoginPage() {
 
               {/* Direct Login */}
               <div className="flex flex-col sm:flex-row justify-center items-center w-[50vw] md:w-[40vw] xl:w-[30vw] gap-1 sm:gap-3">
-                <div className="text-center cursor-pointer w-full py-3 rounded-xl bg-white/5 text-white font-semibold transition hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+                <div 
+                  onClick={async()=>{
+                    await supabase.auth.signInWithOAuth({
+                      provider:"google",
+                    })
+                  }}
+                  className="text-center cursor-pointer w-full py-3 rounded-xl bg-white/5 text-white font-semibold transition hover:scale-[1.02] active:scale-[0.98] shadow-lg">
                   Google
                 </div>
-                <div className="text-center cursor-pointer w-full py-3 rounded-xl bg-white/5 text-white font-semibold transition hover:scale-[1.02] active:scale-[0.98] shadow-lg">
+                <div 
+                  onClick={async()=>{
+                    await supabase.auth.signInWithOAuth({
+                      provider:"github",
+                    })
+                  }}
+                  className="text-center cursor-pointer w-full py-3 rounded-xl bg-white/5 text-white font-semibold transition hover:scale-[1.02] active:scale-[0.98] shadow-lg">
                   Github
                 </div>
               </div>
@@ -97,8 +133,8 @@ export default function LoginPage() {
                     value={email}
                     placeholder="Email"
                     onChange={(e) => setEmail(e.target.value)}
-                    onFocus={() => setFocused("email")}
-                    onBlur={() => setFocused(null)}
+                    // onFocus={() => setFocused("email")}
+                    // onBlur={() => setFocused(null)}
                     required
                     className="w-full px-4 pt-4 pb-2 bg-white/[0.05] border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none transition"
                   />
@@ -111,8 +147,8 @@ export default function LoginPage() {
                     value={password}
                     placeholder="Password"
                     onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setFocused("password")}
-                    onBlur={() => setFocused(null)}
+                    // onFocus={() => setFocused("password")}
+                    // onBlur={() => setFocused(null)}
                     required
                     className="w-full px-4 pt-4 pb-2 bg-white/[0.05] border border-white/10 rounded-xl text-white focus:border-red-500 focus:outline-none transition"
                   />
