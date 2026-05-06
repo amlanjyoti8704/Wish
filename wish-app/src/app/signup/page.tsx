@@ -8,183 +8,181 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [focused, setFocused] = useState<string | null>(null);
+  const [retypePassword, setRetypePassword] = useState(""); 
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+const handleSubmit = (e:any) => {
+  e.preventDefault();
+
+  if (password !== retypePassword) return;
+
+  setIsLoading(true);
+
+  setTimeout(() => {
+    window.location.href = "/profiles";
+  }, 800);
+};
 
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background Image */}
+
+      {/* Background */}
       <div className="absolute inset-0">
         <Image
           src="/images/login-bg.png"
-          alt="Background"
+          alt="bg"
           fill
-          className="object-cover"
+          className="object-cover scale-110"
           priority
-          sizes="100vw"
         />
         <div className="absolute inset-0 bg-black/70" />
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-primary via-transparent to-bg-primary/50" />
+        <div className="absolute inset-0 bg-gradient-to-br from-black via-black/60 to-black/80" />
       </div>
 
-      {/* Minimal Navbar */}
-      <nav className="absolute top-0 left-0 right-0 z-20 px-6 lg:px-12 py-6">
-        <Link href="/login" className="inline-block">
-          <span className="text-3xl font-black tracking-tight text-accent">
-            WISH
-          </span>
-        </Link>
-      </nav>
+      {/* Ambient Glow */}
+      <div className="absolute top-1/3 left-1/4 w-72 h-72 bg-purple-500/10 blur-3xl rounded-full" />
+      <div className="absolute bottom-1/3 right-1/4 w-72 h-72 bg-red-500/10 blur-3xl rounded-full" />
 
-      {/* Signup Card */}
-      <div className="relative z-10 w-full max-w-md mx-4 animate-fade-in">
-        <div className="bg-bg-secondary/80 backdrop-blur-xl rounded-2xl border border-border p-8 sm:p-10 shadow-2xl shadow-black/40">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Join Wish</h1>
-            <p className="text-text-muted text-sm">
-              Create your personal streaming universe
-            </p>
-          </div>
+      {/* Card */}
+      <div className="relative w-[70vw] max-w-xl px-6">
 
-          {/* Form */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              window.location.href = "/profiles";
-            }}
-            className="space-y-5"
-          >
-            {/* Name */}
-            <div className="relative">
-              <label
-                htmlFor="signup-name"
-                className={`absolute left-4 transition-all duration-300 pointer-events-none ${
-                  focused === "name" || name
-                    ? "top-2 text-[10px] text-accent font-medium"
-                    : "top-1/2 -translate-y-1/2 text-sm text-text-muted"
-                }`}
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="signup-name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onFocus={() => setFocused("name")}
-                onBlur={() => setFocused(null)}
-                className="w-full px-4 pt-6 pb-2 bg-bg-tertiary border border-border rounded-xl text-white text-sm transition-all duration-300 focus:border-accent/50 focus:ring-1 focus:ring-accent/20 hover:border-border-hover"
-                required
-              />
-            </div>
+        <div className="relative bg-white/[0.06] backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
 
-            {/* Email */}
-            <div className="relative">
-              <label
-                htmlFor="signup-email"
-                className={`absolute left-4 transition-all duration-300 pointer-events-none ${
-                  focused === "email" || email
-                    ? "top-2 text-[10px] text-accent font-medium"
-                    : "top-1/2 -translate-y-1/2 text-sm text-text-muted"
-                }`}
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="signup-email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                onFocus={() => setFocused("email")}
-                onBlur={() => setFocused(null)}
-                className="w-full px-4 pt-6 pb-2 bg-bg-tertiary border border-border rounded-xl text-white text-sm transition-all duration-300 focus:border-accent/50 focus:ring-1 focus:ring-accent/20 hover:border-border-hover"
-                required
-              />
-            </div>
+          <div className="absolute inset-0 rounded-3xl border border-white/10 pointer-events-none" />
 
-            {/* Password */}
-            <div className="relative">
-              <label
-                htmlFor="signup-password"
-                className={`absolute left-4 transition-all duration-300 pointer-events-none ${
-                  focused === "password" || password
-                    ? "top-2 text-[10px] text-accent font-medium"
-                    : "top-1/2 -translate-y-1/2 text-sm text-text-muted"
-                }`}
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="signup-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onFocus={() => setFocused("password")}
-                onBlur={() => setFocused(null)}
-                className="w-full px-4 pt-6 pb-2 bg-bg-tertiary border border-border rounded-xl text-white text-sm transition-all duration-300 focus:border-accent/50 focus:ring-1 focus:ring-accent/20 hover:border-border-hover"
-                required
-              />
-            </div>
+          <div className="px-10 py-12">
 
-            {/* Password Strength Indicator */}
-            <div className="flex gap-1">
-              {[1, 2, 3, 4].map((level) => (
-                <div
-                  key={level}
-                  className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
-                    password.length >= level * 3
-                      ? level <= 2
-                        ? "bg-yellow-500"
-                        : "bg-green-500"
-                      : "bg-border"
-                  }`}
+            <div className="max-w-full mx-auto flex flex-col items-center justify-center gap-2.5 w-full h-[65vh]">
+
+              {/* Header */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-red-500 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold">W</span>
+                </div>
+
+                <h1 className="text-3xl font-semibold text-white text-center">
+                  Create account
+                </h1>
+
+                <p className="text-sm text-white/60 text-center">
+                  Start your journey
+                </p>
+              </div>
+
+              {/* Divider */}
+              <div className="border-b border-white/20 w-80 my-8" />
+
+              {/* Social */}
+              <div className="flex flex-col sm:flex-row w-[50vw] md:w-[40vw] xl:w-[30vw] gap-3">
+                <div className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
+                  Google
+                </div>
+                <div className="w-full text-center py-3 rounded-xl bg-white/5 text-white font-semibold hover:scale-[1.02] transition">
+                  Github
+                </div>
+              </div>
+
+              {/* OR */}
+              <div className="flex items-center gap-3 w-[50vw] md:w-[40vw] xl:w-[30vw] my-6">
+                <div className="flex-1 border-b border-white/20" />
+                <span className="text-white/60 text-sm">Or</span>
+                <div className="flex-1 border-b border-white/20" />
+              </div>
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-[50vw] md:w-[40vw] xl:w-[30vw]">
+
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white focus:border-purple-500 outline-none"
+                  required
                 />
-              ))}
+
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white focus:border-purple-500 outline-none"
+                  required
+                />
+
+                {/* Password */}
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-white/[0.05] border border-white/10 rounded-xl text-white focus:border-purple-500 outline-none"
+                    required
+                  />
+                </div>
+
+                {/* Retype Password */}
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Retype Password"
+                    value={retypePassword}
+                    onChange={(e) => setRetypePassword(e.target.value)}
+                    className={`w-full px-4 py-3 bg-white/[0.05] border rounded-xl text-white outline-none transition
+                      ${retypePassword && password !== retypePassword 
+                        ? "border-red-500" 
+                        : "border-white/10 focus:border-purple-500"}
+                    `}
+                    required
+                  />
+
+                  {/* Show/Hide */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-white/50"
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
+
+                {/* Error Message */}
+                {retypePassword && password !== retypePassword && (
+                  <p className="text-red-400 text-xs">
+                    Passwords do not match
+                  </p>
+                )}
+                {retypePassword && password === retypePassword && (
+                  <p className="text-emerald-400 text-xs">
+                    Passwords match ✓
+                  </p>
+                )}
+
+                {/* Submit */}
+                <button
+                  type="submit"
+                  disabled={isLoading || password !== retypePassword}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-red-500 text-white font-semibold 
+                hover:scale-[1.02] transition shadow-lg 
+                disabled:opacity-40 disabled:cursor-not-allowed"  
+                >
+                  {isLoading ? "Creating..." : "Create Account"}
+                </button>
+
+              </form>
+
+              {/* Footer */}
+              <p className="text-sm text-white/60 mt-6">
+                Already have an account?{" "}
+                <Link href="/login" className="text-purple-400 hover:underline">
+                  Sign in
+                </Link>
+              </p>
+
             </div>
-
-            {/* Terms */}
-            <label className="flex items-start gap-3 text-xs text-text-muted cursor-pointer group">
-              <input
-                type="checkbox"
-                className="w-4 h-4 rounded border-border bg-bg-tertiary accent-accent mt-0.5"
-                id="agree-terms"
-              />
-              <span className="group-hover:text-text-secondary transition-colors leading-relaxed">
-                I agree to the Terms of Service and Privacy Policy. I understand
-                my data will be handled according to the privacy guidelines.
-              </span>
-            </label>
-
-            {/* Create Account Button */}
-            <button
-              type="submit"
-              id="signup-submit"
-              className="w-full py-3.5 bg-accent hover:bg-accent-hover text-white font-bold rounded-xl text-sm transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Create Account
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-text-muted uppercase tracking-wider">
-              or
-            </span>
-            <div className="flex-1 h-px bg-border" />
           </div>
-
-          {/* Sign In Link */}
-          <p className="text-center text-sm text-text-muted">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="text-white font-semibold hover:text-accent transition-colors duration-300"
-              id="signup-login-link"
-            >
-              Sign in
-            </Link>
-          </p>
         </div>
       </div>
     </div>
