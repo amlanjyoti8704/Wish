@@ -25,25 +25,52 @@ useEffect(() => {
   checkUser();
 }, []);
 
-const handleSubmit = async (e:any) => {
+const handleSubmit = async (e: any) => {
   e.preventDefault();
 
   if (password !== retypePassword) return;
 
   setIsLoading(true);
 
-  const {data, error}=await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-  })
+  });
 
-  if(error) {
+  console.log("SIGNUP:", data);
+  console.log("SIGNUP ERROR:", error);
+
+  if (error) {
     alert(error.message);
     setIsLoading(false);
     return;
   }
 
-  console.log("USER: ", data);
+  if (!data.user) {
+    alert("Use not found");
+    setIsLoading(false);
+    return;
+  }
+
+  const { data: profileData, error: profileError } =
+    await supabase
+      .from("profiles")
+      .insert({
+        user_id: data?.user?.id,
+        name: name,
+        // avatar: "/avatar1.png",
+      })
+      .select();
+
+  console.log("PROFILE DATA:", profileData);
+  console.log("PROFILE ERROR:", profileError);
+
+  if (profileError) {
+    alert(profileError.message);
+    setIsLoading(false);
+    return;
+  }
+
   window.location.href = "/profiles";
 };
 

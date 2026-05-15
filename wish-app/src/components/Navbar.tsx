@@ -10,6 +10,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
 
   const router = useRouter(); 
 
@@ -20,6 +21,17 @@ export default function Navbar() {
   };  
 
   useEffect(() => {
+    const getCurrentProfile=async()=>{
+      const selectedProfileId=localStorage.getItem("selectedProfileId");
+      if(!selectedProfileId) return;
+      const {data,error}=await supabase.from("profiles").select("*").eq("id",selectedProfileId).single();
+
+      console.log(data);
+      console.log(error);
+
+      if(data) setProfile(data);  
+    };
+    getCurrentProfile();
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -88,7 +100,17 @@ export default function Navbar() {
             {/* Profile */}
             <div className="relative group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-800 flex items-center justify-center font-bold text-sm transition-all duration-300 group-hover:ring-2 group-hover:ring-red-500/50 group-hover:scale-110">
-                A
+                {profile?.avatar ? (
+                  <img
+                    src={profile.avatar}
+                    alt={profile.name}
+                    className="w-full h-full rounded-xl object-cover"
+                  />
+                ) : (
+                  <span className="text-white text-lg">
+                    {profile?.name?.charAt(0).toUpperCase()}
+                  </span>
+                )}  
               </div>
               <ul className="absolute right-0 top-full mt-2 w-40 py-2 bg-zinc-900 border border-white/10 rounded-lg shadow-xl opacity-0 invisible translate-y-1 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-200 z-50">
                 <li className="py-1 px-2 text-center">
