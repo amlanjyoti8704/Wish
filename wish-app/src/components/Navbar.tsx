@@ -5,8 +5,9 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "../../lib/supabaseClient";
+import Searchbar from "@/components/Searchbar";
 
-export default function Navbar() {
+export default function Navbar({ mediaItems, onSearchResults }: any) {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -108,7 +109,9 @@ export default function Navbar() {
           </div>
 
           {/* 🔥 Right Side */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {/* Search */}
+            {pathname === "/browse" && <Searchbar mediaItems={mediaItems} onSearchResults={onSearchResults} />}
 
             {/* Profile */}
             <div className="relative group">
