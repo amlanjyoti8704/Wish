@@ -9,6 +9,8 @@ import {
   isFavorite,
 } from "@/services/favoriteService";
 import { getCurrentProfile } from "@/lib/getCurrentProfile";
+import { addRecentlyViewed } from "@/services/recentlyViewedService";
+import { saveProgress, getProgress, removeContinueWatching } from "@/services/continueWatchingService";
 
 export default function MediaPage() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function MediaPage() {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [favorite, setFavorite]=useState(false);
+  const [savedProgress,setSavedProgress]=useState(0);
+  const videoRef =useRef<HTMLVideoElement>(null);
 
   const currentIndex =
     allMedia.findIndex(
@@ -56,6 +60,91 @@ export default function MediaPage() {
   };
 
   useEffect(() => {
+    const saveBeforeExit =
+      async () => {
+
+        const profile =
+          getCurrentProfile();
+
+        if (
+          !profile ||
+          !videoRef.current ||
+          !media
+        ) return;
+
+        await saveProgress(
+          profile.id,
+          media.id,
+          videoRef.current.currentTime,
+          videoRef.current.duration
+        );
+
+        window.dispatchEvent(
+          new CustomEvent(
+            "continueWatchingUpdated"
+          )
+        );
+      };
+
+    window.addEventListener(
+      "beforeunload",
+      saveBeforeExit
+    );
+
+    return () =>
+      window.removeEventListener(
+        "beforeunload",
+        saveBeforeExit
+      );
+
+  }, [media]);
+
+  useEffect(() => {
+
+    const loadProgress =
+      async () => {
+
+        const profile =
+          getCurrentProfile();
+
+        if(
+          !profile ||
+          !media
+        ) return;
+
+        // const data =
+        //   await getContinueWatching(
+        //     profile.id
+        //   );
+
+        const record = await getProgress(profile.id, media.id);
+
+        if(record){
+          setSavedProgress(
+            record.progress_seconds
+          );
+        }
+      };
+
+    loadProgress();
+
+  }, [media]);
+
+  useEffect(() => {
+    if (
+      videoRef.current &&
+      savedProgress > 0
+    ) {
+
+      videoRef.current.currentTime =
+        savedProgress;
+
+    }
+
+  }, [savedProgress]);
+
+  useEffect(() => {
+
     const handleKeyDown =
         (
         e: KeyboardEvent
@@ -120,40 +209,66 @@ export default function MediaPage() {
 
   }, [media]);
 
-    useEffect(() => {
+  useEffect(() => {
 
-    const loadData =
-        async () => {
-
-        const mediaData =
-            await getMediaById(
-            params.id as string
-            );
-
-        setMedia(mediaData);
+    const saveView =
+      async () => {
 
         const profile =
-            getCurrentProfile();
+          getCurrentProfile();
 
-        if (!profile) return;
+        if(
+          !profile ||
+          !media
+        ) return;
 
-        const profileMedia =
-            await getProfileMedia(
-            profile.id
-            );
+        await addRecentlyViewed(
+          profile.id,
+          media.id
+        );
+      };
 
-        const mediaList =
-            profileMedia.map(
-            (item:any) => item.media
-            );
+    saveView();
 
-        setAllMedia(mediaList);
-        };
+  }, [media]);
 
-    loadData();
+  useEffect(() => {
 
-    }, [params.id]);
+  const loadData =
+      async () => {
 
+      const mediaData =
+          await getMediaById(
+          params.id as string
+          );
+
+      setMedia(mediaData);
+
+      const profile =
+          getCurrentProfile();
+
+      if (!profile) return;
+
+      const profileMedia =
+          await getProfileMedia(
+          profile.id
+          );
+
+      const mediaList =
+          profileMedia.map(
+          (item:any) => item.media
+          );
+
+      setAllMedia(mediaList);
+      };
+
+  loadData();
+
+  }, [params.id]);
+
+  
+
+  
   const resetInactivityTimer = useCallback(() => {
     setShowOverlay(true);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -161,16 +276,16 @@ export default function MediaPage() {
       setShowOverlay(false);
     }, 3500);
   }, []);
-
+  
   useEffect(() => {
     resetInactivityTimer();
-
+    
     const handleActivity = () => resetInactivityTimer();
-
+    
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("touchstart", handleActivity);
     window.addEventListener("keydown", handleActivity);
-
+    
     return () => {
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("touchstart", handleActivity);
@@ -178,6 +293,98 @@ export default function MediaPage() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [resetInactivityTimer]);
+  
+  const isVideo = media?.media_type === "movie" || media?.media_type === "video";
+
+  useEffect(() => {
+    if(
+      !isVideo ||
+      !media
+    ) return;
+    
+    const interval =
+    setInterval(
+      async () => {
+        
+        const profile =
+        getCurrentProfile();
+        
+        if(
+          !profile ||
+          !videoRef.current
+        ) return;
+        
+        const progress = videoRef.current.currentTime;
+      
+        const duration = videoRef.current.duration;
+
+          if (duration > 0 && progress / duration > 0.95) {
+            // remove from continue_watching
+            await removeContinueWatching(profile.id, media.id);
+            window.dispatchEvent(
+              new CustomEvent(
+                "continueWatchingUpdated"
+              )
+            );
+            return;
+          }
+
+          if (
+            !videoRef.current.duration ||
+            isNaN(videoRef.current.duration)
+          ) return;
+
+          await saveProgress(
+            profile.id,
+            media.id,
+            videoRef.current.currentTime,
+            videoRef.current.duration
+          );
+
+          window.dispatchEvent(
+            new CustomEvent(
+              "continueWatchingUpdated"
+            )
+          );
+
+
+        },
+        10000
+      );
+
+    return () =>
+      clearInterval(
+        interval
+      );
+
+  }, [media, isVideo]);
+  
+  useEffect(() => {
+    return () => {
+
+      const profile =
+        getCurrentProfile();
+
+      if (
+        profile &&
+        media &&
+        videoRef.current &&
+        isVideo
+      ) {
+
+        saveProgress(
+          profile.id,
+          media.id,
+          videoRef.current.currentTime,
+          videoRef.current.duration
+        );
+
+      }
+
+    };
+
+  }, [media, isVideo]);
+
 
   if (!media) {
     return (
@@ -189,8 +396,8 @@ export default function MediaPage() {
       </div>
     );
   }
+  
 
-  const isVideo = media.media_type === "video" || media.media_type === "movie";
 
   return (
     <div
@@ -201,8 +408,18 @@ export default function MediaPage() {
       {/* Fullscreen Media */}
       {isVideo ? (
         <video
+          ref={videoRef}
           controls={showOverlay}
           autoPlay
+          onLoadedMetadata={() => {
+            if(
+              videoRef.current &&
+              savedProgress > 0
+            ){
+              videoRef.current.currentTime =
+                savedProgress;
+            }
+          }}
           className="absolute inset-0 w-full h-full object-contain bg-black"
         >
           <source src={media.media_url} />

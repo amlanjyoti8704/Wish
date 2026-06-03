@@ -17,6 +17,7 @@ export default function Card({ content, index = 0 }: CardProps) {
   const [liked, setLiked] = useState(false);
   const router=useRouter();
 
+
   useEffect(() => {
     const checkFavorite = async () => {
       const profile = getCurrentProfile();
@@ -37,6 +38,19 @@ export default function Card({ content, index = 0 }: CardProps) {
     window.addEventListener("favoriteToggle", handleFavoriteToggle);
     return () => window.removeEventListener("favoriteToggle", handleFavoriteToggle);
   }, [content.id]);
+
+  
+
+  const progressPercent = content.duration_seconds?(content.progress_seconds/content.duration_seconds)*100:0;
+
+  const remainingMinutes =content.duration_seconds
+    ? Math.ceil(
+        (
+          content.duration_seconds -
+          content.progress_seconds
+        ) / 60
+      )
+    : 0;
 
   console.log(content.thumbnail_url);
   return (
@@ -59,6 +73,20 @@ export default function Card({ content, index = 0 }: CardProps) {
             className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             sizes="(max-width: 640px) 160px, (max-width: 768px) 200px, (max-width: 1024px) 240px, 280px"
           />
+          {
+            content.progress_seconds &&
+            content.duration_seconds && (
+              <div className="absolute bottom-0 left-0 w-full h-1 bg-white/20">
+                <div
+                  className="h-full bg-red-600"
+                  style={{
+                    width:
+                      `${Math.min(progressPercent, 100)}%`
+                  }}
+                />
+              </div>
+            )
+          }
 
           {/* Hover Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-500" />
@@ -115,8 +143,15 @@ export default function Card({ content, index = 0 }: CardProps) {
           {/* Content Info (appears on hover) */}
           <div className="absolute bottom-0 left-0 right-0 p-3 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
             <h3 className="text-sm sm:text-base font-bold text-white leading-tight truncate">
-              {content.title}
+                {content.title}
             </h3>
+            {
+              content.progress_seconds > 0 && (
+                <p className="text-[10px] text-white/70">
+                  Continue • {remainingMinutes} min left
+                </p>
+              )
+            }
             <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
               {content.created_at && (
                 <span className="text-[11px] text-text-muted">
