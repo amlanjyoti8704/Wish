@@ -12,6 +12,8 @@ import { v4 as uuidv4 } from "uuid";
 import { getAllMedia, deleteMedia, updateMedia } from "@/services/mediaService";
 import {ImSpinner2} from "react-icons/im";
 import { getCurrentProfile } from "@/lib/getCurrentProfile";
+import { clearRecommendationCache } from "@/services/recommendationCacheService";
+import { clearMemoryCache } from "@/services/memoryCacheService";
 
 export default function AdminPage() {
 
@@ -386,7 +388,13 @@ export default function AdminPage() {
               profileId: p
             })
           }
-        ))
+        )),
+
+        // ...selectedProfiles.map(p => {
+        //   clearRecommendationCache(p);
+        //   clearMemoryCache(p);
+        //   return;
+        // })
       ]);
 
       alert(
@@ -471,7 +479,12 @@ export default function AdminPage() {
                 profileId: p
               })
             }
-          ))
+          )),
+          // ...selectedProfiles.map(p => {
+          //   clearRecommendationCache(p);
+          //   clearMemoryCache(p);
+          //   return;
+          // })
         ]);
 
         setMedia(prev => prev.filter(m => m.id !== mediaId));
@@ -633,7 +646,12 @@ export default function AdminPage() {
               profileId: p
             })
           }
-        ))
+        )),
+        // ...selectedProfiles.map(p => {
+        //   clearRecommendationCache(p);
+        //   clearMemoryCache(p);
+        //   return;
+        // })
       ]);
 
       setMedia(prev =>

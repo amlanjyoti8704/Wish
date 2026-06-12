@@ -26,9 +26,8 @@ export default function BrowsePage() {
 
   // const [movies, setMovies]=useState<any[]>([]);
   const [favorites, setFavorites] = useState<any[]>([]);
-  const [profileMedia, setProfileMedia] =
-    useState<any[]>([]);
-
+  const [profileMedia, setProfileMedia] = useState<any[]>([]);
+  const [recommendations, setRecommendations]=useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
@@ -50,6 +49,81 @@ export default function BrowsePage() {
       });
     }
   }, []);
+
+  useEffect(()=>{
+    const loadRecommendations =
+      async () => {
+
+        const profile =
+          getCurrentProfile();
+
+        if(!profile) return;
+
+        const response =
+          await fetch(
+            "/api/recommendations",
+            {
+              method:"POST",
+              headers:{
+                "Content-Type":
+                  "application/json"
+              },
+              body: JSON.stringify({
+                profileId: profile.id
+              })
+            }
+          );
+
+        const data =
+          await response.json();
+
+        console.log(
+          "RECOMMEND SOURCE:",
+          data.source
+        );
+
+        setRecommendations(
+          data.results || []
+        );
+      };
+
+    loadRecommendations();
+  },[])
+
+//   useEffect(() => {
+
+//   const testRecommendations = async () => {
+
+//     const profile = getCurrentProfile();
+
+//     if (!profile) return;
+
+//     const response =
+//       await fetch(
+//         "/api/recommendations",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify({
+//             profileId: profile.id,
+//           }),
+//         }
+//       );
+
+//     const data =
+//       await response.json();
+
+//     console.log(
+//       "RECOMMENDATIONS:",
+//       data
+//     );
+//   };
+
+//   testRecommendations();
+
+// }, []);
 
   useEffect(() => {
 
@@ -502,6 +576,16 @@ export default function BrowsePage() {
               )
             ) : (
               <>
+                {selectedType === "All" && selectedCategory === "All" && recommendations.length > 0 && (
+
+                  <Row
+                    title="✨ Recommended For You"
+                    items={recommendations}
+                    id="recommended"
+                  />
+
+                )}
+
                 {selectedType === "All" && selectedCategory === "All" && continueWatching.length > 0 && (
                   <Row
                     title="▶ Continue Watching"

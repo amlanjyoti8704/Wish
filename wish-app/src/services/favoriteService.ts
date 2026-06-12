@@ -1,5 +1,6 @@
 import { supabase } from "../../lib/supabaseClient";
-import { saveMemory } from "./memoryService";
+import { deleteMemory, saveMemory } from "./memoryService";
+import { clearRecommendationCache } from "./recommendationCacheService";
 
 // export const addFavorite = async (
 //   profileId: string,
@@ -63,13 +64,16 @@ export const addFavorite = async (
 
 export const removeFavorite = async (
   profileId: string,
-  mediaId: string
+  mediaId: string,
+  accessToken:string
 ) => {
   const { error } = await supabase
     .from("favorites")
     .delete()
     .eq("profile_id", profileId)
     .eq("media_id", mediaId);
+
+  await deleteMemory(profileId,mediaId,accessToken);
 
   if (error) {
     console.log(error);

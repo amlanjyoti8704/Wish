@@ -579,7 +579,7 @@ export default function MediaPage() {
                 if (!profile) return;
 
                 if (favorite) {
-                  await removeFavorite(profile.id, media.id);
+                  await removeFavorite(profile.id, media.id, accessToken!);
                   setFavorite(false);
                   window.dispatchEvent(new CustomEvent("favoriteToggle", { 
                     detail: { mediaId: media.id, isFavorite: false } 

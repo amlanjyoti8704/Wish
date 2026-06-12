@@ -104,7 +104,7 @@ export default function Card({ content, index = 0 }: CardProps) {
               if (!profile) return;
 
               if (liked) {
-                await removeFavorite(profile.id, content.id);
+                await removeFavorite(profile.id, content.id, accessToken!);
                 setLiked(false);
                 window.dispatchEvent(new CustomEvent("favoriteToggle", {
                   detail: { mediaId: content.id, isFavorite: false }

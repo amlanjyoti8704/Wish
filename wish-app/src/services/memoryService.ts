@@ -1,9 +1,9 @@
 "use server";
 
 import { createAuthenticatedClient } from "../../lib/serverSupabase";
-
-import { generateEmbedding }
-from "./embeddingService";
+import { clearMemoryCache } from "./memoryCacheService";
+import { generateEmbedding } from "./embeddingService";
+import { clearRecommendationCache } from "./recommendationCacheService";
 
 export async function saveMemory(
   profileId: string,
@@ -57,8 +57,8 @@ export async function saveMemory(
         await existingQuery.maybeSingle();
 
     console.log(
-  "ABOUT TO INSERT MEMORY"
-);
+      "ABOUT TO INSERT MEMORY"
+    );
     
     const result= existing?
         await supabase
@@ -87,5 +87,41 @@ export async function saveMemory(
 
   if(result.error){
     console.log(result.error);
+  }
+
+  if(!result.error){
+    const memoryClear=await clearMemoryCache(profileId);
+    const recommendationClear=await clearRecommendationCache(profileId);
+
+    console.log(
+      "CACHE CLEARED",
+      memoryClear,
+      "Recommendation Cache Cleared",
+      recommendationClear
+    );
+  }
+}
+
+export async function deleteMemory(
+  profileId:string,
+  mediaId:string,
+  accessToken:string
+){
+  const supabase=
+    createAuthenticatedClient(accessToken);
+
+  const {error}=await supabase
+    .from("memory_embeddings")
+    .delete()
+    .eq("profile_id", profileId)
+    .eq("media_id", mediaId);
+
+  if(error){
+    console.log(error);
+  }
+
+  if(!error){
+    await clearMemoryCache(profileId);
+    await clearRecommendationCache(profileId);
   }
 }
